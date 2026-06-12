@@ -1,0 +1,1418 @@
+<!doctype html>
+<html  lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Detail Page — Omni Hotels &amp; Resorts</title>
+    <script
+      src="https://kit.fontawesome.com/da08280601.js"
+      crossorigin="anonymous"
+    ></script>
+    <link rel="stylesheet" href="design-tokens.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,1..1000&display=optional" rel="stylesheet">
+    <link rel="stylesheet" href="customer-management.css" />
+    <style>
+/* ── ASIDE (PROPERTY LIST) ── */
+.aside-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 100;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.aside-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+.aside-panel {
+  width: 600px;
+  height: 100vh;
+  background: var(--bg-surface);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.15);
+  transform: translateX(40px);
+  transition: transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex;
+  flex-direction: column;
+}
+.aside-overlay.open .aside-panel {
+  transform: translateX(0);
+}
+.aside-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+  z-index: 10;
+}
+.aside-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.aside-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.aside-search {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.aside-search input {
+  width: 100%;
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 13px;
+  outline: none;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  transition: border-color 0.15s;
+}
+.aside-search input:focus {
+  border-color: var(--border-focus);
+}
+.aside-list {
+  overflow-y: auto;
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aside-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-decoration: none;
+  color: inherit;
+}
+.aside-item:hover {
+  background: var(--bg-muted);
+  border-color: var(--border-default);
+}
+.aside-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.aside-item-location {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.aside-item-arrow {
+  color: var(--text-tertiary);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.list-item[data-address-type="property"] {
+  display: none;
+}
+.ship-address-list.show-all .list-item[data-address-type="property"] {
+  display: flex;
+}
+.addr-property-tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--border-radius-sm);
+  padding: 2px 7px;
+  white-space: nowrap;
+}
+.footer-filter-group {
+  display: flex;
+  align-items: stretch;
+  border: 0.5px solid var(--border-subtle);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.footer-select {
+  border: none;
+  background: none;
+  padding: 6px 20px 6px 10px;
+  font-size: var(--fontsize-body-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23aeaeae' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+}
+.footer-select:hover {
+  color: var(--text-primary);
+}
+.footer-badge {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  color: var(--text-tertiary);
+  border-left: 0.5px solid var(--border-subtle);
+  white-space: nowrap;
+  background: none;
+  text-transform: uppercase;
+}
+    </style>
+  </head>
+  <body data-theme="titanium">
+    <!-- ── SIDEBAR ── -->
+
+    <!-- ── MAIN ── -->
+    <div class="main">
+      <!-- Top Bar -->
+      <div class="topbar">
+        <div class="breadcrumb type-body-sm">
+          <a><i class="fa-regular fa-users"></i> Customers</a>
+          <span class="sep">›</span>
+          <span class="current">(0012) Omni Hotels &amp; Resorts</span>
+          <button id="search-btn" class="icon-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <div class="topbar-row">
+          <div class="search-container">
+            <i class="fa-regular fa-magnifying-glass"></i>
+            <input
+              type="text"
+              id="search-input"
+              class="search-input"
+              placeholder="Search Jobs & Customers…"
+              autocomplete="off"
+              aria-autocomplete="list"
+              aria-controls="search-results"
+              aria-expanded="false"
+            />
+            <ul id="search-results" class="search-dropdown" role="listbox" hidden>
+              <li role="option" tabindex="-1">Customer 1 - Isnt this so cool</li>
+              <li role="option" tabindex="-1">Customer 2 - hi sean</li>
+              <li role="option" tabindex="-1">Customer 3 - or jack ig</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Account Info + Billing -->
+
+          <!-- Account Info -->
+          <div class="account card">
+            <div class="inner-row">
+              <div class="acct-info">
+                <h5 class="acct-name">
+                  Omni Hotels &amp; Resorts
+                  <div class="active dot" title="Active Account">
+                  </div>
+                </h5>
+                <div class="acct-tags type-body-sm">
+                  <span class="pill">Management Group</span>
+                  <span class="pill">60 Properties</span>
+                </div>
+              </div>
+
+              <button class="icon-btn" onclick="openModal('editAccount')" title="Edit Account Information">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+            </div>
+            <div class="inner-row border-top">
+              <div class="acct-parent type-body-md">
+                <button onclick="openAside()" class="btn-secondary">Manage Properties</button>
+                <button class="btn-secondary">View Jobs</button>
+              </div>
+
+              <div class="acct-team">
+                <div class="avatar-group">
+                  <div class="avatar" style="background: #d8e2fb">JP</div>
+                  <div class="avatar-label type-body-sm">Sales</div>
+                </div>
+                <div class="avatar-group">
+                  <div class="avatar" style="background: #e8fbd4">SC</div>
+                  <div class="avatar-label type-body-sm">Billing</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        <!-- Contacts -->
+        <h6 class="section-title">Contacts</h6>
+        <div class="card contacts-section" >
+          <!-- Contact List -->
+            <div class="search-list">
+              <div class="search-list-header">
+                <input type="checkbox" class="select-all-cb" title="Select all">
+                <input placeholder="Search Contacts…" />
+                <button class="icon-btn" onclick="openModal('addContact')">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <div class="list-items">
+                <div
+                  class="list-item active"
+                  onclick="selectContact(this)"
+                >
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">Claire Fontaine</div>
+                  <div class="list-item-value">VP, Food &amp; Beverage</div>
+                </div>
+                <div class="list-item" onclick="selectContact(this)">
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">Derek Ashworth</div>
+                  <div class="list-item-value">SVP, Operations</div>
+                </div>
+                <div class="list-item" onclick="selectContact(this)">
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">Mia Solis</div>
+                  <div class="list-item-value">Director, Corporate Procurement</div>
+                </div>
+                <div class="list-item" onclick="selectContact(this)">
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">Trevor Okafor</div>
+                  <div class="list-item-value">VP, Finance</div>
+                </div>
+                <div class="list-item" onclick="selectContact(this)">
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">Priya Nair</div>
+                  <div class="list-item-value">Director, Brand Standards</div>
+                </div>
+                <div class="list-item" onclick="selectContact(this)">
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">James Harmon</div>
+                  <div class="list-item-value">Corporate Controller</div>
+                </div>
+                <div class="list-item" onclick="selectContact(this)">
+                  <input type="checkbox" class="item-cb" onclick="event.stopPropagation()">
+                  <div class="list-item-name">Naomi Vance</div>
+                  <div class="list-item-value">Corporate Executive Chef</div>
+                </div>
+              </div>
+              <div class="list-footer type-body-sm">
+                <span class="list-footer-count">7 CONTACTS</span>
+                <div class="action-container type-body-sm">
+                  <button title="Export Contacts List" class="export btn-ghost"><i class="fa-solid fa-arrow-down-from-bracket"></i></i></button>
+                  <div title="Drop a file here or click to upload" class="filedrop btn-ghost">
+                    <input type="file" hidden>
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Contact Detail -->
+            <div class="contact-detail">
+              <div class="contact-detail-header">
+                <div>
+                  <span class="contact-detail-name type-body-md semibold">Claire Fontaine</span>
+                  <span class="contact-detail-role type-body-sm"
+                    >VP, Food &amp; Beverage</span
+                  >
+                </div>
+                <div class="contact-actions">
+                  <button
+                    class="icon-btn"
+                    onclick="openModal('addContact')"
+                    title="Edit Contact"
+                  >
+                    <i class="fa-solid fa-pen"></i>
+                  </button>
+                  <button class="icon-btn" title="Delete Contact">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="contact-fields type-body-sm">
+                <div class="preferred contact-field ">
+                  <div class="field-label semibold uppercase">
+                    <i class="fa-regular fa-envelope"></i>
+                    Main Email
+                  </div>
+                  <div class="field-value">
+                    cfontaine@omnihotels.com
+                    <button
+                      class="icon-btn"
+                      title="Copy"
+                      onclick="copyText('cfontaine@omnihotels.com')"
+                    >
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="contact-field preferred">
+                  <div class="field-label semibold uppercase">
+                    <i class="fa-regular fa-phone"></i>
+                    Cell Phone
+                  </div>
+                  <div class="field-value ">
+                    (214) 555-8823
+                    <button
+                      class="icon-btn"
+                      title="Copy"
+                      onclick="copyText('(214) 555-8823')"
+                    >
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="contact-field">
+                  <div class="field-label semibold uppercase">
+                    <i class="fa-regular fa-phone"></i>
+                    Office Phone
+                  </div>
+                  <div class="field-value">
+                    (214) 555-0100 x312
+                    <button
+                      class="icon-btn"
+                      title="Copy"
+                      onclick="copyText('(214) 555-0100 x312')"
+                    >
+                      <i class="fa-regular fa-copy"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="contact-field">
+                  <div class="field-label semibold uppercase">
+                    <i class="fa-regular fa-location-dot"></i>
+                    Office Address
+                  </div>
+                  <div class="field-value">
+                    Corporate HQ — 4001 Maple Ave, Dallas, TX 75219
+                  </div>
+                </div>
+              </div>
+              <div class="notes-area type-body-sm">
+                <span>No notes yet</span>
+              </div>
+            </div>
+        </div>
+
+        <!-- Shipping -->
+        <h6 class="section-title">Shipping</h6>
+        <div class="shipping two-col">
+          
+            <!-- Accounts -->
+          <div class="card">
+            <div class="search-list ship-account-list">
+              <div class="search-list-header">
+                <input type="checkbox" class="select-all-cb" title="Select all">
+                <input placeholder="Search Accounts…" />
+                <button class="icon-btn" onclick="openModal('editShippingAccount')">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <div class="list-items">
+                <div class="list-item">
+                  <input type="checkbox" class="item-cb">
+                  <div class="list-item-name">UPS</div>
+                  <div class="list-item-alias">(Food)</div>
+                  <div class="list-item-value">9Z4821K</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Account" onclick="openModal('editShippingAccount')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Account"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div id="shipping-accounts" class="list-footer type-body-sm">
+                <span class="list-footer-count">4 ACCOUNTS</span>
+                <div class="action-container type-body-sm">
+                  <button title="Export Shipping Accounts List" class="export btn-ghost">
+                    <i class="fa-solid fa-arrow-down-from-bracket"></i>
+                  </button>
+                  <div title="Drop a file here or click to upload" class="filedrop btn-ghost">
+                    <input type="file" hidden>
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card">
+            <div class="search-list ship-address-list">
+              <div class="search-list-header">
+                <input type="checkbox" class="select-all-cb" title="Select all">
+                <input placeholder="Search Addresses…" />
+                <button class="icon-btn" onclick="openModal('editAccount')">
+                  <i class="fa-solid fa-plus"></i>
+                </button>
+              </div>
+              <div class="list-items">
+                <div class="list-item">
+                  <input type="checkbox" class="item-cb">
+                  <div class="list-item-name">Corporate HQ</div>
+                  <div class="list-item-value">4001 Maple Ave, Dallas, TX 75219</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <input type="checkbox" class="item-cb">
+                  <div class="list-item-name">Billing Address</div>
+                  <div class="list-item-value">4001 Maple Ave, Dallas, TX 75219</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <input type="checkbox" class="item-cb">
+                  <div class="list-item-name">AP / Remittance</div>
+                  <div class="list-item-value">4001 Maple Ave Ste 600, Dallas, TX 75219</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+                <div class="list-item" data-address-type="property">
+                  <input type="checkbox" class="item-cb">
+                  <span class="addr-property-tag">Omni Nashville Hotel</span>
+                  <div class="list-item-name">Main Entrance</div>
+                  <div class="list-item-value">250 Fifth Ave S, Nashville, TN 37203</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+                <div class="list-item" data-address-type="property">
+                  <input type="checkbox" class="item-cb">
+                  <span class="addr-property-tag">Omni Dallas Hotel</span>
+                  <div class="list-item-name">Main Entrance</div>
+                  <div class="list-item-value">555 S Lamar St, Dallas, TX 75202</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+                <div class="list-item" data-address-type="property">
+                  <input type="checkbox" class="item-cb">
+                  <span class="addr-property-tag">Omni Atlanta Hotel</span>
+                  <div class="list-item-name">Receiving Dock</div>
+                  <div class="list-item-value">100 CNN Center, Atlanta, GA 30303</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+                <div class="list-item" data-address-type="property">
+                  <input type="checkbox" class="item-cb">
+                  <span class="addr-property-tag">Omni Chicago Hotel</span>
+                  <div class="list-item-name">Main Entrance</div>
+                  <div class="list-item-value">676 N Michigan Ave, Chicago, IL 60611</div>
+                  <div class="list-item-actions">
+                    <button class="icon-btn" title="Edit Address" onclick="openModal('addAddress')"><i class="fa-solid fa-pen"></i></button>
+                    <button class="icon-btn" title="Delete Address"><i class="fa-solid fa-trash-can"></i></button>
+                  </div>
+                </div>
+              </div>
+              <div class="list-footer type-body-sm">
+                <div class="footer-filter-group">
+                  <select class="footer-select" title="Filter addresses">
+                    <option value="group">Management Group Addresses Only</option>
+                    <option value="all">Include Property Addresses</option>
+                  </select>
+                  <span class="footer-badge" id="address-badge">0 / 3</span>
+                </div>
+                <div class="action-container type-body-sm">
+                  <button title="Export Address List" class="export btn-ghost">
+                    <i class="fa-solid fa-arrow-down-from-bracket"></i>
+                  </button>
+                  <div title="Drop a file here or click to upload" class="filedrop btn-ghost">
+                    <input type="file" hidden>
+                    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+      <!-- /page-content -->
+    </div>
+    <!-- /main -->
+
+    <!-- ═══════════════════════════════════════════════
+     ASIDE: Property List
+══════════════════════════════════════════════════ -->
+    <div class="aside-overlay" id="aside-properties" onclick="handleAsideClick(event)">
+      <div class="aside-panel">
+        <div class="aside-header">
+          <div>
+            <div class="aside-title">Manage Properties</div>
+          </div>
+          <button class="modal-close" onclick="closeAside()">×</button>
+        </div>
+        <div class="aside-search">
+          <input placeholder="Search properties…" oninput="filterAside(this.value)" />
+          <button class="icon-btn" title="Management Group Settings"><i class="fa-solid fa-gear"></i></button>
+        </div>
+        <div class="aside-list" id="aside-property-list">
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Nashville Hotel</div>
+              <div class="aside-item-location">Nashville, TN</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Dallas Hotel</div>
+              <div class="aside-item-location">Dallas, TX</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Atlanta Hotel at CNN Center</div>
+              <div class="aside-item-location">Atlanta, GA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Chicago Hotel</div>
+              <div class="aside-item-location">Chicago, IL</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Los Angeles Hotel</div>
+              <div class="aside-item-location">Los Angeles, CA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni San Francisco Hotel</div>
+              <div class="aside-item-location">San Francisco, CA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Boston Hotel at the Seaport</div>
+              <div class="aside-item-location">Boston, MA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Parker House</div>
+              <div class="aside-item-location">Boston, MA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni William Penn Hotel</div>
+              <div class="aside-item-location">Pittsburgh, PA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Grove Park Inn</div>
+              <div class="aside-item-location">Asheville, NC</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Charlotte Hotel</div>
+              <div class="aside-item-location">Charlotte, NC</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Jacksonville Hotel</div>
+              <div class="aside-item-location">Jacksonville, FL</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Orlando Resort at ChampionsGate</div>
+              <div class="aside-item-location">Orlando, FL</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Tampa Hotel at Westshore</div>
+              <div class="aside-item-location">Tampa, FL</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Houston Hotel</div>
+              <div class="aside-item-location">Houston, TX</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Fort Worth Hotel</div>
+              <div class="aside-item-location">Fort Worth, TX</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni San Antonio Hotel</div>
+              <div class="aside-item-location">San Antonio, TX</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Scottsdale Resort &amp; Spa</div>
+              <div class="aside-item-location">Scottsdale, AZ</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni La Costa Resort &amp; Spa</div>
+              <div class="aside-item-location">Carlsbad, CA</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+          <a class="aside-item">
+            <div>
+              <div class="aside-item-name">Omni Amelia Island Resort</div>
+              <div class="aside-item-location">Amelia Island, FL</div>
+            </div>
+            <i class="fa-regular fa-chevron-right aside-item-arrow"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+     MODAL: Edit Account Information
+══════════════════════════════════════════════════ -->
+    <div
+      class="modal-overlay"
+      id="modal-editAccount"
+      onclick="handleOverlayClick(event, 'editAccount')"
+    >
+      <div class="modal-panel">
+        <div class="modal-header">
+          <span class="modal-title">Edit Account Information</span>
+          <button class="modal-close" onclick="closeModal('editAccount')">
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Customer Name</label>
+            <input
+              class="form-input"
+              placeholder="ex. Sunrise Grill"
+              value="Omni Hotels &amp; Resorts"
+            />
+          </div>
+
+          <div class="form-group">
+            <div class="segment-control">
+              <button class="segment-btn" onclick="selectSegment(this)">
+                Standard Customer
+              </button>
+              <button class="segment-btn active" onclick="selectSegment(this)">
+                Management / Franchise Group
+              </button>
+            </div>
+          </div>
+
+          <div class="toggle-grid">
+            <div class="toggle-row on" onclick="this.classList.toggle('on')">
+              <span class="toggle-label">Active Customer</span>
+              <div class="toggle"></div>
+            </div>
+            <div class="toggle-row" onclick="this.classList.toggle('on')">
+              <span class="toggle-label">Managed by Broker</span>
+              <div class="toggle"></div>
+            </div>
+          </div>
+
+          <div class="section-label-sm">Customer Organization</div>
+          <div class="form-group" style="margin-top: 12px">
+            <label class="form-label">Management / Franchise Group</label>
+            <select class="form-select">
+              <option>Start typing to search groups…</option>
+              <option>TRT Holdings</option>
+              <option>Hilton Hotels</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Customer Type</label>
+            <select class="form-select">
+              <option>Hotel</option>
+              <option>Agency</option>
+              <option>Beverage Company</option>
+              <option>Club</option>
+              <option>Cruise Line</option>
+              <option>Independent Restaurant</option>
+              <option>National Restaurant</option>
+            </select>
+          </div>
+
+          <div class="section-label-sm">team</div>
+          <div class="form-group" style="margin-top: 12px">
+            <label class="form-label">Salesperson</label>
+            <select class="form-select">
+              <option>JP — John Patterson</option>
+              <option>Unassigned</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Billing Associate</label>
+            <select class="form-select">
+              <option>SC — Sara Chen</option>
+              <option>Unassigned</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="submit-btn" onclick="submitModal('editAccount')">
+            SUBMIT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+     MODAL: Edit Billing Information
+══════════════════════════════════════════════════ -->
+    <div
+      class="modal-overlay"
+      id="modal-editBilling"
+      onclick="handleOverlayClick(event, 'editBilling')"
+    >
+      <div class="modal-panel">
+        <div class="modal-header">
+          <span class="modal-title">Edit Billing Information</span>
+          <button class="modal-close" onclick="closeModal('editBilling')">
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="toggle-grid">
+            <div class="toggle-row on" onclick="this.classList.toggle('on')">
+              <span class="toggle-label">PO Required</span>
+              <div class="toggle"></div>
+            </div>
+            <div class="toggle-row on" onclick="this.classList.toggle('on')">
+              <span class="toggle-label">Tax Exempt</span>
+              <div class="toggle"></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Payment Terms</label>
+            <select class="form-select">
+              <option>Net 15</option>
+              <option>Net 30</option>
+              <option>Net 60</option>
+              <option>Due on Receipt</option>
+              <option>2/10 Net 30</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Credit Status</label>
+            <select class="form-select">
+              <option>Good</option>
+              <option>Watch</option>
+              <option>Hold</option>
+              <option>Closed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Credit Limit</label>
+            <div class="prefix-input">
+              <span>$</span>
+              <input type="number" value="25000" placeholder="00.00" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Commission Rate</label>
+            <div class="prefix-input">
+              <span>%</span>
+              <input type="number" value="8.5" placeholder="00" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="submit-btn" onclick="submitModal('editBilling')">
+            SUBMIT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+     MODAL: Add New Contact
+══════════════════════════════════════════════════ -->
+    <div
+      class="modal-overlay"
+      id="modal-addContact"
+      onclick="handleOverlayClick(event, 'addContact')"
+    >
+      <div class="modal-panel">
+        <div class="modal-header">
+          <span class="modal-title">Add New Contact</span>
+          <button class="modal-close" onclick="closeModal('addContact')">
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <div class="form-row form-row-3">
+              <div>
+                <label class="form-label">Salutation</label>
+                <select class="form-select">
+                  <option>Mr.</option>
+                  <option>Ms.</option>
+                  <option>Mrs.</option>
+                  <option>Dr.</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">First Name</label>
+                <input class="form-input" placeholder="First Name" />
+              </div>
+              <div>
+                <label class="form-label">Last Name</label>
+                <input class="form-input" placeholder="Last Name" />
+              </div>
+            </div>
+          </div>
+
+          <div class="toggle-row" style="margin-bottom: 16px" onclick="this.classList.toggle('on')">
+            <span class="toggle-label">Receives shipping notifications</span>
+            <div class="toggle"></div>
+          </div>
+
+          <div class="sub-section">
+            <div class="sub-section-header">
+              <span>EMAIL(S)</span>
+              <span>Primary</span>
+            </div>
+            <div class="input-row" style="margin-bottom: 8px">
+              <div class="form-group" style="flex: 0.6">
+                <label class="form-label">Description</label>
+                <input class="form-input" placeholder="Main, etc…" />
+              </div>
+              <div class="form-group" style="flex: 1">
+                <label class="form-label">Email</label>
+                <input
+                  class="form-input"
+                  type="email"
+                  placeholder="name@company.com"
+                />
+              </div>
+              <div style="padding-bottom: 8px">
+                <div class="radio-btn selected"></div>
+              </div>
+            </div>
+            <a class="add-link">+ Add Email</a>
+          </div>
+
+          <div class="sub-section">
+            <div class="sub-section-header">
+              <span>PHONE NUMBER(S)</span>
+              <span>Primary</span>
+            </div>
+            <div class="input-row" style="margin-bottom: 8px">
+              <div class="form-group" style="flex: 0.6">
+                <label class="form-label">Description</label>
+                <input class="form-input" placeholder="Main, etc…" />
+              </div>
+              <div class="form-group" style="flex: 1">
+                <label class="form-label">Number</label>
+                <input
+                  class="form-input"
+                  type="tel"
+                  placeholder="(000) 000-0000"
+                />
+              </div>
+              <div style="padding-bottom: 8px">
+                <div class="radio-btn selected"></div>
+              </div>
+            </div>
+            <div class="input-row" style="margin-bottom: 8px">
+              <div class="form-group" style="flex: 0.6">
+                <input class="form-input" placeholder="Main, etc…" />
+              </div>
+              <div class="form-group" style="flex: 1">
+                <input
+                  class="form-input"
+                  type="tel"
+                  placeholder="(000) 000-0000"
+                />
+              </div>
+              <div><div class="radio-btn"></div></div>
+            </div>
+            <a class="add-link">+ Add Phone</a>
+          </div>
+
+          <div class="sub-section">
+            <div class="sub-section-header">
+              <span>ADDRESS(S)</span>
+              <span>Primary</span>
+            </div>
+            <div class="input-row" style="margin-bottom: 8px">
+              <div class="form-group" style="flex: 0.6">
+                <label class="form-label">Description</label>
+                <input class="form-input" placeholder="Main, etc…" />
+              </div>
+              <div class="form-group" style="flex: 1">
+                <label class="form-label">Address</label>
+                <input class="form-input" placeholder="Search addresses…" />
+              </div>
+              <div style="padding-bottom: 8px">
+                <div class="radio-btn selected"></div>
+              </div>
+            </div>
+            <a class="add-link">+ Add Address</a>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea
+              class="form-input"
+              rows="4"
+              placeholder="Add notes about this contact…"
+              style="resize: vertical"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="submit-btn" onclick="submitModal('addContact')">
+            SUBMIT
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+     MODAL: Add New Address
+══════════════════════════════════════════════════ -->
+    <div
+      class="modal-overlay"
+      id="modal-addAddress"
+      onclick="handleOverlayClick(event, 'addAddress')"
+    >
+      <div class="modal-panel">
+        <div class="modal-header">
+          <span class="modal-title">Add New Address</span>
+          <button class="modal-close" onclick="closeModal('addAddress')">
+            ×
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Address Description</label>
+            <input class="form-input" placeholder="Main Address" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Street Address</label>
+            <input class="form-input" placeholder="123 Main St" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Apt, suite, unit (optional)</label>
+            <input class="form-input" placeholder="Apt 4B" />
+          </div>
+          <div class="form-group">
+            <div
+              class="form-row"
+              style="grid-template-columns: 1fr 88px 120px; gap: 12px"
+            >
+              <div>
+                <label class="form-label">City</label>
+                <input class="form-input" placeholder="City" />
+              </div>
+              <div>
+                <label class="form-label">State</label>
+                <select class="form-select">
+                  <option>OH</option>
+                  <option>NY</option>
+                  <option>CA</option>
+                  <option>FL</option>
+                  <option>TX</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label">Zip Code</label>
+                <input class="form-input" placeholder="00000" />
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Country</label>
+            <select class="form-select">
+              <option>United States of America</option>
+              <option>Canada</option>
+              <option>Mexico</option>
+            </select>
+          </div>
+
+          <div class="section-label-sm">Address Roles</div>
+          <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+            <label class="checkbox-row" for="mainAddr">
+              <input type="checkbox" id="mainAddr" />
+              <div class="checkbox-desc">
+                <div class="checkbox-title">Main Address</div>
+                <div class="checkbox-sub">
+                  Currently assigned to
+                  <strong>1000 S Pine Island Rd, Plantation, FL 33324</strong>
+                </div>
+              </div>
+            </label>
+            <label class="checkbox-row" for="billAddr">
+              <input type="checkbox" id="billAddr" />
+              <div class="checkbox-desc">
+                <div class="checkbox-title">Billing Address</div>
+                <div class="checkbox-sub">
+                  Currently assigned to
+                  <strong>1000 S Pine Island Rd, Plantation, FL 33324</strong>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Store Name</label>
+            <input class="form-input" placeholder="Main Address" />
+          </div>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              gap: 10px;
+              margin-bottom: 16px;
+            "
+          >
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 13px;
+                cursor: pointer;
+              "
+            >
+              <input type="checkbox" style="accent-color: var(--interactive-default)" />
+              Use Description on Labels
+            </label>
+            <label
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 13px;
+                cursor: pointer;
+              "
+            >
+              <input type="checkbox" style="accent-color: var(--interactive-default)" />
+              Display Online
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="submit-btn" onclick="submitModal('addAddress')">
+            SUBMIT
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    
+
+    <!-- ═══════════════════════════════════════════════
+     MODAL: Edit Shipping Account
+══════════════════════════════════════════════════ -->
+    <div
+      class="modal-overlay"
+      id="modal-editShippingAccount"
+      onclick="handleOverlayClick(event, 'editShippingAccount')"
+    >
+      <div class="modal-panel">
+        <div class="modal-header">
+          <span class="modal-title">Shipping Account</span>
+          <button class="modal-close" onclick="closeModal('editShippingAccount')">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Carrier</label>
+            <select class="form-select">
+              <option>UPS</option>
+              <option>FedEx</option>
+              <option>USPS</option>
+              <option>DHL</option>
+              <option>OnTrac</option>
+              <option>Amazon Logistics</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Name</label>
+            <input class="form-input" placeholder="e.g. Food, Equipment…" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Account Number</label>
+            <input class="form-input" placeholder="Account number" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="submit-btn" onclick="submitModal('editShippingAccount')">SUBMIT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      const pageContent = document.querySelector(".main");
+      const search = document.querySelector(".topbar-row");
+
+      let lastScroll = 0;
+      const threshold = 10;
+
+      pageContent.addEventListener("scroll", () => {
+        const current = pageContent.scrollTop;
+        const diff = current - lastScroll;
+
+        // Ignore tiny movements
+        if (Math.abs(diff) < threshold) return;
+
+        if (diff > 0) {
+          search.classList.add("hidden");
+        } else {
+          search.classList.remove("hidden");
+        }
+
+        lastScroll = current;
+      });
+
+      const searchBtn = document.getElementById("search-btn")
+
+      searchBtn.addEventListener("click", () =>{
+        search.classList.remove("hidden");
+      })
+
+      const filedrop = document.querySelector(".filedrop");
+
+      filedrop.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        filedrop.classList.add("dragover");
+      });
+
+      filedrop.addEventListener("dragleave", () => {
+        filedrop.classList.remove("dragover");
+      });
+
+      filedrop.addEventListener("drop", (e) => {
+        e.preventDefault();
+        filedrop.classList.remove("dragover");
+
+        const files = e.dataTransfer.files;
+        console.log(files);
+      });
+
+      function openAside() {
+        document.getElementById("aside-properties").classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+      function closeAside() {
+        document.getElementById("aside-properties").classList.remove("open");
+        document.body.style.overflow = "";
+      }
+      function handleAsideClick(e) {
+        if (e.target === e.currentTarget) closeAside();
+      }
+      function filterAside(query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll("#aside-property-list .aside-item").forEach(item => {
+          const name = item.querySelector(".aside-item-name").textContent.toLowerCase();
+          const loc  = item.querySelector(".aside-item-location").textContent.toLowerCase();
+          item.style.display = (name.includes(q) || loc.includes(q)) ? "" : "none";
+        });
+      }
+
+      function openModal(id) {
+        document.getElementById("modal-" + id).classList.add("open");
+        document.body.style.overflow = "hidden";
+      }
+      function closeModal(id) {
+        document.getElementById("modal-" + id).classList.remove("open");
+        document.body.style.overflow = "";
+      }
+      function handleOverlayClick(e, id) {
+        if (e.target === e.currentTarget) closeModal(id);
+      }
+      document.querySelectorAll('.checkbox-row input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          cb.closest('.checkbox-row').classList.toggle('checked', cb.checked);
+        });
+      });
+
+      function submitModal(id) {
+        closeModal(id);
+        const messages = {
+          editAccount: "Account information updated",
+          editBilling: "Billing information updated",
+          addContact: "New contact added",
+          addAddress: "New address added",
+          editShippingAccount: "Shipping account saved",
+        };
+        showToast(messages[id] || "Changes saved");
+      }
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = "✓  " + msg;
+        t.classList.add("show");
+        setTimeout(() => t.classList.remove("show"), 2800);
+      }
+      function selectContact(el) {
+        document
+          .querySelectorAll(".list-item")
+          .forEach((i) => i.classList.remove("active"));
+        el.classList.add("active");
+      }
+      function selectSegment(btn) {
+        btn
+          .closest(".segment-control")
+          .querySelectorAll(".segment-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      function copyText(text) {
+        navigator.clipboard
+          .writeText(text)
+          .then(() => showToast("Copied to clipboard"));
+      }
+
+
+      // ── Search list checkboxes + footer count ──
+      function updateListState(list) {
+        const selectAll = list.querySelector('.select-all-cb');
+        const items = Array.from(list.querySelectorAll('.item-cb'));
+        const countEl = list.querySelector('.list-footer-count');
+        const checkedCount = items.filter(cb => cb.checked).length;
+
+        if (selectAll) {
+          selectAll.checked = checkedCount === items.length && items.length > 0;
+          selectAll.indeterminate = checkedCount > 0 && checkedCount < items.length;
+        }
+
+        if (countEl) {
+          if (!countEl.dataset.total) {
+            const m = countEl.textContent.trim().match(/^(\d+)\s+(.+)$/);
+            if (m) { countEl.dataset.total = m[1]; countEl.dataset.label = m[2]; }
+          }
+          const { total, label } = countEl.dataset;
+          if (total && label) {
+            countEl.textContent = checkedCount === 0
+              ? `${total} ${label}`
+              : `${checkedCount} ${label} SELECTED`;
+          }
+        }
+      }
+
+      document.querySelectorAll('.search-list').forEach(list => {
+        const selectAll = list.querySelector('.select-all-cb');
+        const items = list.querySelectorAll('.item-cb');
+        const countEl = list.querySelector('.list-footer-count');
+        if (countEl) {
+          const m = countEl.textContent.trim().match(/^(\d+)\s+(.+)$/);
+          if (m) { countEl.dataset.total = m[1]; countEl.dataset.label = m[2]; }
+        }
+        if (selectAll) {
+          selectAll.addEventListener('change', () => {
+            items.forEach(cb => cb.checked = selectAll.checked);
+            updateListState(list);
+          });
+        }
+        items.forEach(cb => {
+          cb.addEventListener('change', () => updateListState(list));
+        });
+      });
+      // Address filter + badge
+      (function () {
+        const addrList = document.querySelector('.ship-address-list');
+        const badge = document.getElementById('address-badge');
+        const filterSelect = addrList && addrList.querySelector('.footer-select');
+        if (!addrList || !badge) return;
+
+        function visibleItems() {
+          return Array.from(addrList.querySelectorAll('.list-item'))
+            .filter(item => item.style.display !== 'none' && !item.classList.contains('hidden'));
+        }
+
+        function updateBadge() {
+          const visible = visibleItems();
+          const selected = visible.filter(item => item.querySelector('.item-cb').checked).length;
+          const total = visible.length;
+          badge.textContent = selected === 0 ? `${total}` : `${selected} selected`;
+        }
+
+        if (filterSelect) {
+          filterSelect.addEventListener('change', () => {
+            addrList.classList.toggle('show-all', filterSelect.value === 'all');
+            // Uncheck hidden items so they don't skew counts
+            addrList.querySelectorAll('.list-item[data-address-type="property"] .item-cb').forEach(cb => {
+              if (!addrList.classList.contains('show-all')) cb.checked = false;
+            });
+            updateListState(addrList);
+            updateBadge();
+          });
+        }
+
+        addrList.querySelectorAll('.item-cb').forEach(cb => {
+          cb.addEventListener('change', updateBadge);
+        });
+        updateBadge();
+      })();
+
+      // Close modals with Escape key
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.querySelectorAll(".modal-overlay.open").forEach((m) => {
+            m.classList.remove("open");
+            document.body.style.overflow = "";
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
