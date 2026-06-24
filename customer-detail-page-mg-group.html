@@ -738,38 +738,18 @@
             />
           </div>
 
-          <div class="form-group">
-            <div class="segment-control">
-              <button class="segment-btn" onclick="selectSegment(this)">
-                Standard Customer
-              </button>
-              <button class="segment-btn active" onclick="selectSegment(this)">
-                Management / Franchise Group
-              </button>
-            </div>
+          <div class="toggle-row on" onclick="this.classList.toggle('on')" style="margin-bottom: 16px">
+            <span class="toggle-label">Management / Franchise Group</span>
+            <div class="toggle"></div>
           </div>
 
-          <div class="toggle-grid">
-            <div class="toggle-row on" onclick="this.classList.toggle('on')">
+          <div class="toggle-row on" onclick="this.classList.toggle('on')">
               <span class="toggle-label">Active Customer</span>
               <div class="toggle"></div>
             </div>
-            <div class="toggle-row" onclick="this.classList.toggle('on')">
-              <span class="toggle-label">Broker</span>
-              <div class="toggle"></div>
-            </div>
-          </div>
 
           <div class="section-label-sm">Customer Organization</div>
           <div class="form-group" style="margin-top: 12px">
-            <label class="form-label">Management / Franchise Group</label>
-            <select class="form-select">
-              <option>Start typing to search groups…</option>
-              <option>TRT Holdings</option>
-              <option>Hilton Hotels</option>
-            </select>
-          </div>
-          <div class="form-group">
             <label class="form-label">Customer Type</label>
             <select class="form-select">
               <option>Hotel</option>

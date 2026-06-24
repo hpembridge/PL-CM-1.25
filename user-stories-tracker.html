@@ -175,7 +175,17 @@ body { font-family: var(--font); background: var(--gray-100); color: var(--dark)
 .stmt-value:last-child { border-bottom: none; }
 
 .ac-section { margin-top: 4px; }
-.ac-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gray-900); margin-bottom: 8px; }
+.ac-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--gray-900); margin-bottom: 8px;
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+  padding: 4px 0;
+}
+.ac-label:hover { color: var(--teal-600); }
+.ac-label .ac-chevron { font-size: 10px; color: var(--gray-700); transition: transform .2s; }
+.ac-section.collapsed .ac-chevron { transform: rotate(-90deg); }
+.ac-section.collapsed .ac-items { display: none; }
 .ac-item {
   display: flex; align-items: flex-start; gap: 10px;
   padding: 7px 0; border-bottom: 1px solid var(--gray-100);
@@ -454,364 +464,228 @@ const STORIES = [
     note: "pleeeaaaassseeee"
   },
   {
-    section: "AccountInfoComponent",
-    id: "AI-01", title: "Display account overview",
-    tags: ["both","comp"],
+    section: "Account Info",
+    id: "AI-01", title: "View account overview",
+    tags: ["both"],
     asA: "user viewing a customer record",
-    iWant: "to see the customer's name, active status, type tags, and assigned team at a glance",
-    soThat: "I can confirm I'm on the right account and quickly assess its status before doing anything else",
+    iWant: "to see the customer name, active status, account tags, and assigned team at a glance",
+    soThat: "I can confirm I'm on the right account and assess its status before doing anything else",
     ac: [
       "Customer name renders as a prominent heading.",
-      "An active/inactive status dot appears beside the name (green = active, red = inactive).",
-      "Customer type pills are displayed (e.g., Hotel, 354 Rooms, Managed by Broker).",
-      "Sales and Billing associate avatars (initials + label) appear in the bottom row.",
-      "The edit (pen) icon button is present and accessible.",
+      "An active/inactive status dot appears beside the name.",
+      "Account tags display the customer type and any type-specific settings propagated from it (e.g. Room Count for Hotel).",
+      "Salesperson and Billing Associate avatars appear with their role labels.",
+      "For standard customers, a hyperlinked 'Managed by [Group Name]' line appears beneath the name and links to the parent group's record.",
+      "Management/Franchise Group accounts do not show the parent group line.",
     ],
     note: null
   },
   {
-    section: "AccountInfoComponent",
-    id: "AI-02", title: "Show parent management group link — Standard Customer",
-    tags: ["std","comp"],
-    asA: "user viewing a standard customer",
-    iWant: "to see which management or franchise group this property belongs to, as a clickable link",
-    soThat: "I can navigate directly to the parent group's record when needed",
-    ac: [
-      "A 'Managed by [Group Name]' line appears beneath the customer name.",
-      "The group name is a hyperlink that navigates to the parent group's customer detail page.",
-      "If no parent group is assigned, the line is omitted.",
-      "Standard customers never show the 'Manage Properties' button.",
-    ],
-    note: "Management/Franchise Group accounts do not show this line — they are the top-level entity and have no parent."
-  },
-  {
-    section: "AccountInfoComponent",
-    id: "AI-03", title: "Show property count — Management/Franchise Group",
-    tags: ["mg","comp"],
-    asA: "user viewing a management or franchise group",
-    iWant: "to see how many properties belong to this group displayed as a pill",
-    soThat: "I have immediate context on the scale of this account",
-    ac: [
-      "A 'Management Group' pill is present.",
-      "A '[N] Properties' pill is present, reflecting the current count of linked properties.",
-      "No parent group link ('Managed by…') is shown.",
-    ],
-    note: "Standard customers show customer type pills (e.g., Hotel, Rooms) instead of property count."
-  },
-  {
-    section: "AccountInfoComponent",
-    id: "AI-04", title: "View Jobs button — navigate to multi-ticket print page",
-    tags: ["both","int","comp"],
-    asA: "user on any customer detail page",
-    iWant: "to click a 'View Jobs' button and be taken to that customer's multi-ticket print page",
-    soThat: "I can quickly access all jobs for this account without leaving the page context",
-    ac: [
-      "A 'View Jobs' button (secondary style) is present in the account info card for both Standard and Management Group customers.",
-      "Clicking navigates to the existing multi-ticket print page, scoped to this customer's ID.",
-      "Navigation preserves browser history so the user can return via back button.",
-    ],
-    note: "This links to an existing page — no new page needs to be built. Route/query param handling is the primary implementation concern."
-  },
-  {
-    section: "AccountInfoComponent",
-    id: "AI-05", title: "Edit account information via aside",
-    tags: ["both","aside","comp"],
+    section: "Account Info",
+    id: "AI-02", title: "Edit account information",
+    tags: ["both", "aside"],
     asA: "user with edit permissions",
-    iWant: "to open an edit panel from the account info card and update core account fields",
+    iWant: "to open an edit panel from the account card and update core account fields",
     soThat: "account details stay accurate without navigating away from the customer page",
     ac: [
-      "Clicking the pen icon opens the existing aside/flyout component.",
-      "The form includes: Customer Name, Standard/Management Group segment control, Active Customer toggle, Managed by Broker toggle, Management/Franchise Group dropdown, Customer Type dropdown, Salesperson dropdown, Billing Associate dropdown.",
-      "Salesperson dropdown should be disabled for now in Platinum.",
-      "When 'Hotel' is selected as Customer Type, a Hotel Settings section with Room Count field appears.",
-      "When a non-hotel type is selected, the Hotel Settings section is hidden.",
-      "The segment control determines customer type (Standard vs. Management Group) and should update the account's classification on save.",
+      "Clicking the pen icon opens the edit aside/flyout.",
+      "The form includes: Customer Name, Management/Franchise Group toggle, Active/Inactive toggle.",
+      "Customer Type dropdown is present; selecting Hotel reveals a Room Count field.",
+      "Billing Associate dropdown is editable.",
+      "Salesperson dropdown is present but disabled.",
+      "Management/Franchise Group assignment field is present for standard customers.",
       "On submit, the aside closes and a success toast is shown.",
     ],
-    note: null
+    note: "Salesperson assignment is disabled for all users for now, pending permissions work."
   },
   {
-    section: "AccountInfoComponent",
-    id: "AI-07", title: "Manage Properties — open aside to view and navigate properties",
-    tags: ["mg","aside","new","comp"],
-    asA: "user viewing a management or franchise group",
-    iWant: "to click 'Manage Properties' and see a searchable list of all properties in a flyout, with links to each property's record",
-    soThat: "I can quickly find and navigate to any individual property under this group",
+    section: "Account Info",
+    id: "AI-03", title: "Navigate to Multi-Ticket Print page",
+    tags: ["both", "int"],
+    asA: "user on a customer detail page",
+    iWant: "to click 'View Jobs' and be taken to that customer's multi-ticket print page",
+    soThat: "I can quickly access all jobs for this account without leaving the page context",
     ac: [
-      "'Manage Properties' button (secondary style) is present only on Management/Franchise Group accounts.",
-      "Clicking opens the aside/flyout with a searchable property list.",
-      "Each property entry shows name and city/state.",
+      "A 'View Jobs' button is present in the account info card for all customer types.",
+      "Clicking navigates to the multi-ticket print page scoped to this customer.",
+      "Navigation preserves browser history so the user can return via the back button.",
+    ],
+    note: "Links to an existing page — no new page needed. Route/query param handling is the primary concern."
+  },
+  {
+    section: "Account Info",
+    id: "AI-04", title: "Manage Properties aside — Management Group only",
+    tags: ["mg", "aside", "new"],
+    asA: "user viewing a management or franchise group",
+    iWant: "to open a 'Manage Properties' aside and navigate to any property's record",
+    soThat: "I can quickly find and access individual properties under this group",
+    ac: [
+      "'Manage Properties' button appears only on Management/Franchise Group accounts.",
+      "Clicking opens the aside with a searchable list of all associated properties.",
+      "Each row shows the property name and city/state.",
       "Typing in the search field filters the list in real time.",
       "Clicking a property row navigates to that property's customer detail page.",
-      "A gear/settings icon is present in the aside header for future use (no behavior required in this sprint).",
-      "The aside can be closed via the X button or by clicking the overlay.",
+      "The aside closes via the × button or clicking the overlay.",
     ],
     note: "Standard customers do not have this button."
   },
   {
-    section: "ContactsComponent",
-    id: "CO-01", title: "View contact list with inline search and selection",
-    tags: ["both","comp"],
+    section: "Contacts",
+    id: "CO-01", title: "View contact list with search and selection",
+    tags: ["both"],
     asA: "user on a customer detail page",
     iWant: "to see all contacts in a scrollable, searchable list with checkboxes",
-    soThat: "I can quickly find specific contacts and select one or more for bulk actions",
+    soThat: "I can find specific contacts quickly and select them for bulk actions",
     ac: [
       "Contacts render in a fixed-height scrollable list panel.",
-      "Each row shows contact name and job title.",
-      "A search input filters the list in real time as the user types.",
-      "Each row has an individual checkbox; a Select All checkbox in the header toggles all visible items.",
-      "The footer shows a count (e.g., '7 CONTACTS'); when items are checked it updates to 'N CONTACTS SELECTED'.",
-      "Clicking a contact row (not the checkbox) selects it and displays its detail in the adjacent panel.",
+      "Each row shows contact name and role/title.",
+      "A search input filters the list in real time.",
+      "Each row has an individual checkbox; a Select All header checkbox toggles all visible rows.",
+      "The footer shows the total contact count (e.g. '7 CONTACTS'); updates to 'N CONTACTS SELECTED' when items are checked.",
+      "Clicking a contact row (not the checkbox) displays that contact's detail in the adjacent panel.",
     ],
     note: null
   },
   {
-    section: "ContactsComponent",
-    id: "CO-02", title: "View selected contact detail",
-    tags: ["both","comp"],
+    section: "Contacts",
+    id: "CO-02", title: "View contact detail panel",
+    tags: ["both"],
     asA: "user reviewing a contact",
-    iWant: "to click a contact in the list and see their full details in a read-only panel beside the list",
-    soThat: "I can review contact information without opening a separate page or modal",
+    iWant: "to click a contact and see their contact methods in a read-only detail panel",
+    soThat: "I can review and copy contact information without leaving the page",
     ac: [
-      "The detail panel shows: full name, job title, all emails (with copy button), all phone numbers (with copy button), office address, and notes.",
-      "Primary/preferred emails and phones are visually distinguished (highlighted row).",
-      "Clicking a copy icon copies the value to clipboard and shows a brief toast.",
-      "The detail panel is always visible when a contact is selected; it defaults to the first contact on load.",
+      "The detail panel shows all contact methods: email(s), phone number(s), and address.",
+      "Each value has a copy-to-clipboard button; clicking it shows a brief toast confirmation.",
+      "Phone numbers display their type: Home, Work, Mobile, or Fax.",
+      "A notes area appears below the contact fields.",
       "Edit and delete icon buttons are present in the detail panel header.",
     ],
     note: null
   },
   {
-    section: "ContactsComponent",
-    id: "CO-03", title: "Add and edit contacts via aside",
-    tags: ["both","aside","comp"],
+    section: "Contacts",
+    id: "CO-03", title: "Add, edit, and delete contacts",
+    tags: ["both", "aside"],
     asA: "user managing contacts",
-    iWant: "to add a new contact or edit an existing one using the aside/flyout",
-    soThat: "contact information is kept complete and current",
+    iWant: "to add, edit, or delete contacts",
+    soThat: "contact information stays complete and current",
     ac: [
       "Clicking '+' in the list header opens the aside for a new contact.",
       "Clicking the edit icon in the detail panel opens the aside pre-populated with that contact's data.",
       "The form includes: Salutation, First Name, Last Name, 'Receives shipping notifications' toggle.",
-      "Emails sub-section: description + email address pairs, ability to add multiple, radio button to mark primary.",
-      "Phone numbers sub-section: description + phone pairs, ability to add multiple, radio button to mark primary.",
-      "Addresses sub-section: description + address lookup, ability to add multiple, radio button to mark primary.",
-      "Notes textarea.",
+      "Email and phone sections each support multiple entries; phone type can be set to Home, Work, Mobile, or Fax.",
+      "A combined maximum of 6 contact methods (emails + phones total) can be added.",
+      "One address can be selected per contact.",
+      "A notes textarea is included.",
       "On submit, the aside closes and a success toast appears.",
-    ],
-    note: null
-  },
-  {
-    section: "ContactsComponent",
-    id: "CO-04", title: "Delete a contact",
-    tags: ["both","comp"],
-    asA: "user managing contacts",
-    iWant: "to delete a contact from the customer record",
-    soThat: "outdated contacts don't clutter the list",
-    ac: [
-      "A delete (trash) icon is present in the contact detail panel header.",
+      "A delete icon is present in the contact detail panel header.",
       "Clicking delete prompts a confirmation before removing.",
-      "On confirm, the contact is removed from the list and the detail panel resets to the next available contact.",
+      "On confirm, the contact is removed from the list and the detail panel resets.",
     ],
-    note: null
+    note: "The 6-method cap and single-address limit reflect current Gold system constraints."
   },
   {
-    section: "ContactsComponent",
-    id: "CO-05", title: "Export contacts to CSV",
-    tags: ["both","int","new","comp"],
+    section: "Contacts",
+    id: "CO-05", title: "Export and import contacts",
+    tags: ["both", "int", "new"],
     asA: "user managing contacts",
-    iWant: "to export the contacts list to a CSV file",
-    soThat: "I can use the data outside the application",
+    iWant: "to export the contact list to CSV and import contacts from a CSV file",
+    soThat: "I can use contact data outside the app and bulk-add contacts without manual entry",
     ac: [
-      "An export (download) icon button is present in the contacts list footer.",
-      "If no checkboxes are checked, clicking export downloads all contacts as a CSV.",
-      "If one or more checkboxes are checked, clicking export downloads only the selected contacts.",
-      "The exported file is named meaningfully (e.g., '[CustomerName]-contacts.csv').",
+      "Export and upload icon buttons are present in the contacts list footer.",
+      "With no items checked, export downloads all contacts.",
+      "With items checked, export downloads only the selected contacts.",
+      "Clicking upload opens a file picker filtered to CSV; drag-and-drop onto the button also works.",
+      "Imported contacts are added to the list; a success or error toast is shown.",
     ],
-    note: "Selective export is a new approach. The existing export-all feature should be extended to respect the selection state."
+    note: "Selective export (respecting checkbox state) is a new behavior compared to Gold."
   },
   {
-    section: "ContactsComponent",
-    id: "CO-06", title: "Import contacts from CSV",
-    tags: ["both","int","comp"],
-    asA: "user managing contacts",
-    iWant: "to import contacts from a CSV file by clicking an upload button or dropping a file",
-    soThat: "I can bulk-add or update contacts without entering each one manually",
-    ac: [
-      "An upload (import) icon button is present in the contacts list footer.",
-      "Clicking it opens a file picker filtered to CSV files.",
-      "Dragging a CSV file onto the upload button also triggers the import.",
-      "Imported contacts are added to the list and a success or error toast is shown.",
-    ],
-    note: "Relies on the existing manage-customer-addresses import infrastructure — same pattern, applied to contacts."
-  },
-  {
-    section: "ShippingAccountsComponent",
-    id: "SA-01", title: "View shipping accounts list",
-    tags: ["both","comp"],
-    asA: "user on a customer detail page",
-    iWant: "to see all carrier accounts associated with this customer in a searchable list",
-    soThat: "I can quickly find and manage the accounts used for shipments",
-    ac: [
-      "Each row shows: carrier name, account alias (e.g., 'Food'), and account number.",
-      "A search input filters the list in real time.",
-      "Each row has an individual checkbox; a Select All checkbox in the header toggles all.",
-      "Edit and delete icon buttons appear on hover.",
-      "The footer shows a count (e.g., '4 ACCOUNTS'); updates to 'N ACCOUNTS SELECTED' when items are checked.",
-    ],
-    note: null
-  },
-  {
-    section: "ShippingAccountsComponent",
-    id: "SA-02", title: "Add and edit a shipping account via aside",
-    tags: ["both","aside","comp"],
+    section: "Shipping — Accounts",
+    id: "SA-01", title: "View, add, edit, and delete shipping accounts",
+    tags: ["both"],
     asA: "user managing shipping information",
-    iWant: "to add a new shipping account or edit an existing one in the aside/flyout",
+    iWant: "to view a list of carrier accounts and add, edit, or delete them",
     soThat: "carrier billing information is accurate and up to date",
     ac: [
-      "Clicking '+' in the header opens the aside for a new shipping account.",
-      "Clicking the edit icon on a row opens the aside pre-populated with that account's data.",
-      "The form includes: Carrier dropdown (UPS, FedEx, USPS, DHL, OnTrac, Amazon Logistics, Other), Account Name, Account Number.",
-      "On submit, the aside closes and a success toast appears.",
+      "Each row shows carrier name, account alias, and account number.",
+      "A search input filters the list in real time.",
+      "Each row has an individual checkbox; a Select All header checkbox toggles all.",
+      "Edit and delete icon buttons appear on hover for each row.",
+      "Clicking '+' opens the add form (Carrier, Account Name, Account Number).",
+      "Clicking edit opens the form pre-populated with that account's data.",
+      "Clicking delete prompts confirmation; on confirm the account is removed.",
+      "The footer count updates based on selection state.",
     ],
     note: null
   },
   {
-    section: "ShippingAccountsComponent",
-    id: "SA-03", title: "Delete a shipping account",
-    tags: ["both","comp"],
-    asA: "user managing shipping information",
-    iWant: "to delete a shipping account that is no longer used",
-    soThat: "the list stays clean and reflects only active carrier relationships",
-    ac: [
-      "A delete icon is present on each row (visible on hover).",
-      "Clicking prompts a confirmation.",
-      "On confirm, the account is removed from the list.",
-    ],
-    note: null
-  },
-  {
-    section: "ShippingAccountsComponent",
-    id: "SA-04", title: "Export shipping accounts to CSV",
-    tags: ["both","int","new","comp"],
+    section: "Shipping — Accounts",
+    id: "SA-02", title: "Export and import shipping accounts",
+    tags: ["both", "int", "new"],
     asA: "user managing shipping accounts",
-    iWant: "to export the shipping accounts list to a CSV file",
-    soThat: "I can use or share the data outside the application",
+    iWant: "to export the accounts list to CSV and import accounts from a CSV file",
+    soThat: "I can use or bulk-load carrier account data",
     ac: [
-      "An export icon button is in the shipping accounts footer.",
-      "If no items are checked, all accounts are exported.",
-      "If items are checked, only selected accounts are exported.",
-    ],
-    note: "Selective export is a new approach extending the existing export capability."
-  },
-  {
-    section: "ShippingAccountsComponent",
-    id: "SA-05", title: "Import shipping accounts from CSV",
-    tags: ["both","int","comp"],
-    asA: "user managing shipping accounts",
-    iWant: "to import shipping accounts from a CSV file",
-    soThat: "I can bulk-load carrier accounts without entering each one manually",
-    ac: [
-      "An upload icon button is in the shipping accounts footer.",
-      "Clicking opens a file picker filtered to CSV.",
-      "Drag-and-drop onto the button also triggers import.",
+      "Export and upload icon buttons are present in the footer.",
+      "With no items checked, export downloads all accounts.",
+      "With items checked, export downloads only the selected accounts.",
+      "Clicking upload opens a CSV file picker; drag-and-drop onto the button also works.",
       "Imported accounts appear in the list; a success or error toast is shown.",
     ],
-    note: null
+    note: "Selective export is a new behavior compared to Gold."
   },
   {
-    section: "ShippingAddressesComponent",
-    id: "SH-01", title: "View shipping addresses list — Standard Customer",
-    tags: ["std","comp"],
-    asA: "user on a standard customer detail page",
-    iWant: "to see all shipping addresses in a searchable list with checkboxes",
-    soThat: "I can find and manage delivery locations for this account",
-    ac: [
-      "Each row shows address description (label) and full street address.",
-      "A search input filters the list in real time.",
-      "Each row has an individual checkbox; a Select All checkbox toggles all.",
-      "Edit and delete icon buttons appear on hover.",
-      "The footer shows a count (e.g., '4 ADDRESSES'); updates when items are checked.",
-    ],
-    note: null
-  },
-  {
-    section: "ShippingAddressesComponent",
-    id: "SH-02", title: "View shipping addresses with property filter — Management Group",
-    tags: ["mg","new","comp"],
-    asA: "user on a management or franchise group detail page",
-    iWant: "to filter the shipping addresses list between 'Management Group Addresses Only' and 'Include Property Addresses'",
-    soThat: "I can focus on corporate addresses or see all addresses across properties as needed",
-    ac: [
-      "The footer contains a dropdown filter with two options: 'Management Group Addresses Only' and 'Include Property Addresses'.",
-      "By default, only management group addresses are shown.",
-      "Selecting 'Include Property Addresses' reveals additional rows tagged with their property name.",
-      "Property address rows display a badge/tag showing the property they belong to.",
-      "A count badge in the footer reflects the number of visible addresses (and selected if applicable).",
-      "When switching back to 'Management Group Addresses Only', property address checkboxes are cleared.",
-    ],
-    note: "Property addresses are managed through the property's own record. They appear here for reference/export but edits should link through to the property."
-  },
-  {
-    section: "ShippingAddressesComponent",
-    id: "SH-03", title: "Add and edit a shipping address via aside",
-    tags: ["both","aside","int","comp"],
+    section: "Shipping — Addresses",
+    id: "SH-01", title: "View, add, edit, and delete shipping addresses",
+    tags: ["both"],
     asA: "user managing shipping addresses",
-    iWant: "to add a new address or edit an existing one in the aside/flyout",
+    iWant: "to view a list of addresses and add, edit, or delete them",
     soThat: "delivery locations are accurate and labeled correctly",
     ac: [
-      "Clicking '+' opens the aside for a new address.",
-      "Clicking the edit icon on a row opens the aside pre-populated with that address.",
-      "The form includes: Address Description, Street Address, Apt/Suite/Unit, City, State, Zip, Country.",
-      "Address Roles section: checkboxes for 'Main Address' and 'Billing Address', each showing the currently assigned address as subtext.",
-      "Checking a role that is already assigned to another address warns the user it will be reassigned.",
-      "Additional fields: Store Name, 'Use Description on Labels' checkbox, 'Display Online' checkbox.",
-      "On submit, the aside closes and a success toast appears.",
+      "Each row shows address description and full street address.",
+      "A search input filters the list in real time.",
+      "Each row has an individual checkbox; a Select All header checkbox toggles all.",
+      "Edit and delete icon buttons appear on hover for each row.",
+      "Clicking '+' opens the add address form.",
+      "Clicking edit opens the form pre-populated with that address's data.",
+      "Clicking delete prompts confirmation; on confirm the address is removed.",
+      "The footer count updates based on selection state.",
     ],
     note: null
   },
   {
-    section: "ShippingAddressesComponent",
-    id: "SH-04", title: "Delete a shipping address",
-    tags: ["both","comp"],
-    asA: "user managing shipping addresses",
-    iWant: "to delete an address that is no longer needed",
-    soThat: "the address list stays accurate",
+    section: "Shipping — Addresses",
+    id: "SH-02", title: "Filter addresses by scope — Management Group only",
+    tags: ["mg", "new"],
+    asA: "user on a management or franchise group detail page",
+    iWant: "to toggle between seeing only that group's own addresses and including all property addresses",
+    soThat: "I can focus on corporate-level addresses or see the full picture across all properties",
     ac: [
-      "A delete icon is present on each row (visible on hover).",
-      "Clicking prompts a confirmation.",
-      "On confirm, the address is removed.",
-      "If the deleted address held a role (Main or Billing), the UI indicates that role is now unassigned.",
+      "A dropdown in the footer offers 'Management Group Addresses Only' (default) and 'Include Property Addresses'.",
+      "By default, only the management group's own addresses are shown.",
+      "Selecting 'Include Property Addresses' reveals additional rows for property-level addresses.",
+      "Property address rows display a badge showing the property they belong to.",
+      "Switching back to 'Management Group Addresses Only' hides property rows and clears their checkboxes.",
+      "The footer count badge reflects the number of currently visible addresses.",
     ],
     note: null
   },
   {
-    section: "ShippingAddressesComponent",
-    id: "SH-05", title: "Export shipping addresses to CSV",
-    tags: ["both","int","new","comp"],
+    section: "Shipping — Addresses",
+    id: "SH-03", title: "Export and import shipping addresses",
+    tags: ["both", "int", "new"],
     asA: "user managing shipping addresses",
-    iWant: "to export the addresses list to CSV",
-    soThat: "I can use the data elsewhere",
+    iWant: "to export the address list to CSV and import addresses from a CSV file",
+    soThat: "I can use address data elsewhere and bulk-add locations without manual entry",
     ac: [
-      "An export icon button is in the footer.",
-      "With no items checked, all visible addresses are exported (respecting the current filter setting for management groups).",
-      "With items checked, only selected addresses are exported.",
+      "Export and upload icon buttons are present in the footer.",
+      "With no items checked, export downloads all visible addresses (respecting the current MG filter).",
+      "With items checked, export downloads only the selected addresses.",
+      "Clicking upload opens a CSV file picker; drag-and-drop onto the button also works.",
+      "Imported addresses appear in the list; a success or error toast is shown.",
     ],
-    note: "Integrates with the existing manage-customer-addresses export. Selective export is a new approach."
-  },
-  {
-    section: "ShippingAddressesComponent",
-    id: "SH-06", title: "Import shipping addresses from CSV",
-    tags: ["both","int","comp"],
-    asA: "user managing shipping addresses",
-    iWant: "to import addresses from a CSV file",
-    soThat: "I can bulk-add locations without manual data entry",
-    ac: [
-      "An upload icon button is in the footer.",
-      "Clicking opens a CSV file picker.",
-      "Drag-and-drop onto the button also triggers import.",
-      "Imported addresses appear in the list; success or error toast shown.",
-    ],
-    note: "Integrates with the existing manage-customer-addresses import capability."
+    note: "For MG customers, export respects the active filter — property addresses are only included if they're currently visible."
   },
 ];
 
@@ -822,14 +696,13 @@ const TAG_META = {
   aside: { cls: "tag-aside", label: "Uses aside" },
   int:   { cls: "tag-int",   label: "Integration" },
   new:   { cls: "tag-new",   label: "New / Updated Approach" },
-  comp:  { cls: "tag-comp",  label: null }, // rendered as component name separately
 };
 
 const SECTIONS = [...new Set(STORIES.map(s => s.section))];
 
 // ── State ────────────────────────────────────────────────────────────────────
 
-const LS_KEY = "cms-user-stories-v2";
+const LS_KEY = "cms-user-stories-v3";
 
 function loadState() {
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
@@ -965,10 +838,8 @@ function buildStoryCard(story) {
 
   // Tags HTML
   const tagsHtml = story.tags
-    .filter(t => t !== 'comp')
     .map(t => `<span class="tag ${TAG_META[t].cls}">${TAG_META[t].label}</span>`)
-    .join('') +
-    `<span class="tag tag-comp">${story.section}</span>`;
+    .join('');
 
   // Status dot
   const dotCls = status === 'complete' ? 'done' : status === 'partial' ? 'partial' : 'none';
@@ -1026,9 +897,12 @@ function buildStoryCard(story) {
         <span class="stmt-label">So that</span>
         <span class="stmt-value">${story.soThat}</span>
       </div>
-      <div class="ac-section">
-        <div class="ac-label">Acceptance Criteria</div>
-        ${acHtml}
+      <div class="ac-section collapsed">
+        <div class="ac-label" onclick="this.closest('.ac-section').classList.toggle('collapsed')">
+          Acceptance Criteria
+          <i class="fa-solid fa-chevron-down ac-chevron"></i>
+        </div>
+        <div class="ac-items">${acHtml}</div>
       </div>
       ${noteHtml}
     </div>
