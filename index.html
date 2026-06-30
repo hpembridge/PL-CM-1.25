@@ -122,8 +122,8 @@
       font-weight: 700; margin: 0 0 10px; color: #1a1d23; line-height: 1.3;
     }
     .notes-inline-card h1 { font-size: 18px; }
-    .notes-inline-card h2 { font-size: 15px; margin-top: 24px; }
-    .notes-inline-card h3 { font-size: 13px; margin-top: 20px; color: #4b5563; }
+    .notes-inline-card h2 { font-size: 15px; }
+    .notes-inline-card h3 { font-size: 13px; color: #4b5563; }
     .notes-inline-card p  { font-size: 13px; line-height: 1.65; color: #374151; margin-bottom: 12px; }
     .notes-inline-card ul, .notes-inline-card ol {
       font-size: 13px; line-height: 1.65; color: #374151;
@@ -195,7 +195,6 @@
     document.getElementById('footerText').textContent = CONFIG.title + ' · Cleveland Menu Co.';
     document.getElementById('lTracker').href = CONFIG.sprintTrackerUrl;
     document.getElementById('lGithub').href  = `https://github.com/${CONFIG.owner}/${CONFIG.repo}`;
-    document.getElementById('flyoutSubtitle').textContent = CONFIG.title + ' · Dev Notes';
 
     // ── Utilities ──
     function toTitle(str) {
